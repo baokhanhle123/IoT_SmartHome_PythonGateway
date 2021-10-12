@@ -3,6 +3,7 @@ from PIL import Image, ImageOps
 import numpy as np
 
 import cv2
+import imutils
 
 import pyttsx3
 
@@ -14,7 +15,7 @@ cam = cv2.VideoCapture(0)
 
 
 def capture_image():
-    ret, frame = cam.read()
+    frame = imutils.url_to_image('http://192.168.1.3:8888/out.jpg')
     cv2.imwrite('img_detect.png', frame)
 
 
