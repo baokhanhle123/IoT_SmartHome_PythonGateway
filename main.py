@@ -15,7 +15,7 @@ cam = cv2.VideoCapture(0)
 
 
 def capture_image():
-    frame = imutils.url_to_image('http://192.168.1.3:8888/out.jpg')
+    frame = imutils.url_to_image('http://smarthomecamera.ddns.net:8000/out.jpg')
     cv2.imwrite('img_detect.png', frame)
 
 
