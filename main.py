@@ -7,21 +7,43 @@ import imutils
 
 import pyttsx3
 
+# Want to receive email?
+isSendEmail = True
+# Image server link
+imgLink = 'http://smarthomecamera.ddns.net:8888/out.jpg'
+
+# Setting for audio
 audio = pyttsx3.init()
 audio.setProperty('rate', 150)
 audio.setProperty('volume', 0.6)
 
+# Setting for image capture
 cam = cv2.VideoCapture(0)
 
-
+# Capture image from server
 def capture_image():
-    frame = imutils.url_to_image('http://smarthomecamera.ddns.net:8000/out.jpg')
+    frame = imutils.url_to_image(imgLink)
     cv2.imwrite('img_detect.png', frame)
 
 
 isMask = False
 
+# Face mask detection
+def check_face_mask(index):
+    if index == 1 or index == 3:
+        isMask = False
+    elif index == 0:
+        isMask = True
+        audio.setProperty('volume', 0.6)
 
+    if not isMask:
+        audio.say("Wear your face mask")
+        if audio.getProperty('volume') <= 0.9:
+            audio.setProperty('volume', audio.getProperty('volume') + 0.1)
+        elif audio.getProperty('volume') < 1.0:
+            audio.setProperty('volume', 1.0)
+
+# Face detection
 def face_detection():
     # Disable scientific notation for clarity
     global isMask
@@ -61,18 +83,7 @@ def face_detection():
     print("Ket Qua : ", name[index])
     print("Chinh Xac: ", max_value)
 
-    if index == 1 or index == 3:
-        isMask = False
-    elif index == 0:
-        isMask = True
-        audio.setProperty('volume', 0.6)
-
-    if not isMask:
-        audio.say("Wear your face mask")
-        if audio.getProperty('volume') <= 0.9:
-            audio.setProperty('volume', audio.getProperty('volume') + 0.1)
-        elif audio.getProperty('volume') < 1.0:
-            audio.setProperty('volume', 1.0)
+    check_face_mask(index)
 
 
 while True:
