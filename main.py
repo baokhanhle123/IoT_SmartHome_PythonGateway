@@ -39,15 +39,15 @@ def capture_image_email():
     frame = imutils.url_to_image(imgLink)
     cv2.imwrite('img_email2.png', frame)
 
-    #print("Capture image 3...")
-    #frame = imutils.url_to_image(imgLink)
-    #cv2.imwrite('img_email3.png', frame)
+    # print("Capture image 3...")
+    # frame = imutils.url_to_image(imgLink)
+    # cv2.imwrite('img_email3.png', frame)
 
 
 def send_email():
     capture_image_email()
     files = ['img_email1.png', 'img_email2.png']
-    #files = ['img_email1.png', 'img_email2.png', 'img_email3.png']
+    # files = ['img_email1.png', 'img_email2.png', 'img_email3.png']
 
     for file in files:
         with open(file, 'rb') as f:
@@ -57,12 +57,18 @@ def send_email():
 
         msg.add_attachment(file_data, maintype='image', subtype=file_type, filename=file_name)
 
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-        print("Logged in...")
-        smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-        print("Sending email...")
-        smtp.send_message(msg)
-        print("Email has been sent!")
+    try:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            print("Logged in...")
+            smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+            print("Sending email...")
+            smtp.send_message(msg)
+            print("Email has been sent!")
+
+            return True
+    except smtplib.SMTPAuthenticationError:
+        print("unable to sign in")
+        return False
 
 
 # Setting for audio
@@ -81,25 +87,39 @@ def capture_image():
 
 
 isSended = False
+realSended = False
+tryCount = 0
 
 
 # Face mask detection
 def check_face_mask(index):
     isMask = False
     global isSended
+    global isSendEmail
+    global tryCount
 
     if index == 1 or index == 3:
         isMask = False
+        isSendEmail = True
     elif index == 0:
         isMask = True
         isSended = False
+        isSendEmail = False
         audio.setProperty('volume', 0.6)
 
     if not isMask:
         if isSendEmail and not isSended:
-            send_email()
-            print("Email sended!")
-            isSended = True
+            tryCount = tryCount + 1
+
+            if tryCount <= 2 :
+                isSended = send_email()
+            else:
+                isSendEmail = False
+
+            if tryCount >= 6:
+                tryCount = 0
+                isSendEmail = True
+
 
         audio.say("Wear your face mask")
         if audio.getProperty('volume') <= 0.9:
@@ -148,8 +168,11 @@ def face_detection():
     print("Ket Qua : ", name[index])
     print("Chinh Xac: ", max_value)
 
+    isSendEmail = False
     isSended = False
+    tryCount = 0
     check_face_mask(index)
+
 
 while True:
     capture_image()
