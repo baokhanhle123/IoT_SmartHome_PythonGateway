@@ -17,15 +17,14 @@ imgLink = 'http://smarthomecamera.ddns.net:8888/out.jpg'
 # Want to receive email?
 isSendEmail = True
 
-EMAIL_ADDRESS = "bksmartiot@gmail.com"
-EMAIL_PASSWORD = "abcd@12345"
-
-contacts = ['baokhanhle.278@gmail.com', 'test@example.com']
+# SmartHome email account
+EMAIL_ADDRESS = ""
+EMAIL_PASSWORD = ""
 
 msg = EmailMessage()
 msg['Subject'] = 'Abnormal behavior detected!'
 msg['From'] = EMAIL_ADDRESS
-msg['To'] = 'baokhanhle.278@gmail.com'
+msg['To'] = ''  # user email
 
 msg.set_content('Suspicious person detected!')
 
@@ -87,7 +86,6 @@ def capture_image():
 
 
 isSended = False
-realSended = False
 tryCount = 0
 
 
@@ -98,29 +96,30 @@ def check_face_mask(index):
     global isSendEmail
     global tryCount
 
-    if index == 1 or index == 3:
+    if index == 1 or index == 3:  # If without face mask
         isMask = False
         isSendEmail = True
-    elif index == 0:
+    elif index == 0:  # If with face mask
         isMask = True
         isSended = False
         isSendEmail = False
         audio.setProperty('volume', 0.6)
 
     if not isMask:
+        # If need to send email and it is not sent
         if isSendEmail and not isSended:
             tryCount = tryCount + 1
 
-            if tryCount <= 2 :
+            if tryCount <= 2:  # If tried times <= 2 -> continue
                 isSended = send_email()
-            else:
+            else:  # "Sleep"
                 isSendEmail = False
 
-            if tryCount >= 6:
+            if tryCount >= 6:  # Retry to send email
                 tryCount = 0
                 isSendEmail = True
 
-
+        # Say "Wear your face mask"
         audio.say("Wear your face mask")
         if audio.getProperty('volume') <= 0.9:
             audio.setProperty('volume', audio.getProperty('volume') + 0.1)
@@ -158,6 +157,7 @@ def face_detection():
     prediction = model.predict(data)
     print(prediction)
 
+    # Custom output
     name = ["With Mask", "Without mask", "Back ground", "Wrong mask"]
     index = -1
     max_value = -1
@@ -177,4 +177,6 @@ def face_detection():
 while True:
     capture_image()
     face_detection()
+
+    # For audio
     audio.runAndWait()
